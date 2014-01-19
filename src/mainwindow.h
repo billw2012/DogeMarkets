@@ -11,6 +11,12 @@ namespace Ui {
 
 class RecentOrdersWidget;
 
+#include <QMovie>
+#include <QToolButton>
+#include <QLabel>
+#include <QIcon>
+#include <QTimer>
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -29,15 +35,34 @@ private slots:
     void about();
     void writeSettings();
 
-	void exchange_connected();
-	void exchange_connection_error(QNetworkReply::NetworkError, const QString&);
+	//void exchange_connection_ok();
+	//void exchange_connection_ok();
+	//void exchange_connection_error(QNetworkReply::NetworkError, const QString&);
 	void exchange_markets_updated();
 
+private:
+	struct ConnectionState { enum type {
+		ConnectionOff,
+		ConnectionOk,
+		ConnectionError,
+		ConnectionWorking
+	};};
+
+	void animate_icon();
+	void set_connection_state(ConnectionState::type state);
+
+	
 signals:
 
 private:
 	ExchangeQuery _exchangeQuery;
 	std::unordered_map<int, RecentOrdersWidget*> _recentOrdersWidgets;
+	QMovie* _connectionIconAnim;
+	QToolButton* _connectionButton;
+	QLabel* _statusLabel;
+	QIcon _connectionErrorIcon, _connectionOffIcon, _connectionOkIcon;
+	ConnectionState::type _state;
+	QTimer _updateTimer;
 };
 
 #endif // MAINWINDOW_H

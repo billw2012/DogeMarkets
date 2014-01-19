@@ -170,35 +170,38 @@ ExchangeQuery::ExchangeQuery()
 {
 	_exchange = new CryptsyExchange();
 
-	connect(_networkManager, &QNetworkAccessManager::finished, this, &ExchangeQuery::network_request_finished);
-	_networkManager->get(QNetworkRequest(_exchange->marketDataUrl));
+	//connect(_networkManager, &QNetworkAccessManager::finished, this, &ExchangeQuery::network_request_finished);
 }
 
-void ExchangeQuery::network_request_finished(QNetworkReply* reply)
+void ExchangeQuery::connect_to_exchange()
 {
-	if(reply->error() != QNetworkReply::NoError)
-	{
-		emit connection_error(reply->error(), reply->errorString());
-		return ;
-	}
-	if(reply->url() == _exchange->marketDataUrl)
-	{
-		std::unordered_map<int, QString> foundMarkets;
-		Exchange::ExchangeErrorCodes::type error = _exchange->parse_market_list(reply->readAll(), foundMarkets);
-		if(error != Exchange::ExchangeErrorCodes::NoError)
+	emit connection_waiting();
+	QNetworkReply* reply = _networkManager->get(QNetworkRequest(_exchange->marketDataUrl));
+	connect(reply, &QNetworkReply::finished, [=]() {
+		if(reply->error() != QNetworkReply::NoError)
 		{
-
+			emit connection_error(reply->error(), reply->errorString());
+			return ;
 		}
-		else
+		if(reply->url() == _exchange->marketDataUrl)
 		{
-			for(auto itr = foundMarkets.begin(); itr != foundMarkets.end(); ++itr)
+			std::unordered_map<int, QString> foundMarkets;
+			Exchange::ExchangeErrorCodes::type error = _exchange->parse_market_list(reply->readAll(), foundMarkets);
+			if(error != Exchange::ExchangeErrorCodes::NoError)
 			{
-				_markets.insert(std::make_pair(itr->first, Market()));
+				emit data_error();
 			}
-			emit connected();
-			update_markets();
+			else
+			{
+				for(auto itr = foundMarkets.begin(); itr != foundMarkets.end(); ++itr)
+				{
+					_markets.insert(std::make_pair(itr->first, Market()));
+				}
+				emit connection_ok();
+				//update_markets();
+			}
 		}
-	}
+	});
 }
 
 bool ExchangeQuery::update_markets()
@@ -208,16 +211,25 @@ bool ExchangeQuery::update_markets()
 
 	_marketsToUpdate = _markets.size();
 
+	emit connection_waiting();
+
 	for(auto marketItr = _markets.begin(); marketItr != _markets.end(); ++marketItr)
 	{
 		//connect(_networkManager, &QNetworkAccessManager::finished, this, &ExchangeQuery::network_request_finished);
 		QNetworkReply* reply = _networkManager->get(QNetworkRequest(_exchange->get_market_url(marketItr->first)));
 		connect(reply, &QNetworkReply::finished, [=]() {
+			-- _marketsToUpdate;
+			if(reply->error() != QNetworkReply::NoError)
+			{
+				emit connection_error(reply->error(), reply->errorString());
+				return ;
+			}
 			_exchange->parse_market(reply->readAll(), marketItr->second);
 			reply->deleteLater();
-			-- _marketsToUpdate;
 			if(_marketsToUpdate == 0)
+			{
 				emit markets_updated();
+			}
 		});
 	}
 	return true;

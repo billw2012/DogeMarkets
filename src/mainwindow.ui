@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>585</width>
-    <height>468</height>
+    <width>558</width>
+    <height>578</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>585</width>
+     <width>558</width>
      <height>21</height>
     </rect>
    </property>
@@ -60,7 +60,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionRefreshMarketData"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="action_Quit">
@@ -82,17 +81,6 @@
    </property>
    <property name="shortcut">
     <string>F1</string>
-   </property>
-  </action>
-  <action name="actionRefreshMarketData">
-   <property name="text">
-    <string>Refresh</string>
-   </property>
-   <property name="toolTip">
-    <string>Refresh Market Data</string>
-   </property>
-   <property name="shortcut">
-    <string>F5</string>
    </property>
   </action>
  </widget>

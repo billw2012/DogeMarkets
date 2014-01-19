@@ -49,18 +49,19 @@ public:
 
 public:
 	ExchangeQuery();
+	void connect_to_exchange();
 	bool update_markets();
 
 	MarketsMap get_markets() const { return _markets; }
 
 protected slots:
-	void network_request_finished(QNetworkReply* reply);
 
 signals:
-	void connected();
+	void connection_ok();
+	void connection_waiting();
 	void connection_error(QNetworkReply::NetworkError, const QString&);
+	void data_error();
 	void markets_updated();
-
 
 private:
 	MarketsMap _markets;

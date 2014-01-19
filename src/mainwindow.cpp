@@ -55,14 +55,52 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->action_Quit, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(writeSettings()));
 
-	connect(&_exchangeQuery, &ExchangeQuery::connected, this, &MainWindow::exchange_connected);
-	connect(&_exchangeQuery, &ExchangeQuery::connection_error, this, &MainWindow::exchange_connection_error);
-	connect(&_exchangeQuery, &ExchangeQuery::markets_updated, this, &MainWindow::exchange_markets_updated);
+	_connectionErrorIcon = QIcon("../data/icons/connection_error.png");
+	_connectionOffIcon = QIcon("../data/icons/connection_off.png");
+	_connectionOkIcon = QIcon("../data/icons/connection_ok.png");
+	_connectionIconAnim = new QMovie("../data/icons/processing.gif");
 
-	ui->actionRefreshMarketData->setEnabled(false);
-	connect(ui->actionRefreshMarketData, &QAction::triggered, [&](bool) {
+	_statusLabel = new QLabel();
+	ui->statusBar->addWidget(_statusLabel);
+	
+	_connectionButton = new QToolButton();
+	_connectionButton->setEnabled(false);
+	ui->statusBar->addPermanentWidget(_connectionButton);
+	set_connection_state(ConnectionState::ConnectionOff);
+
+	_updateTimer.setSingleShot(false);
+	_updateTimer.setInterval(10000);
+
+	connect(&_updateTimer, &QTimer::timeout, [&]() {
 		_exchangeQuery.update_markets();
 	});
+
+	connect(&_exchangeQuery, &ExchangeQuery::connection_ok, [&](){
+		_connectionButton->setEnabled(true);
+		set_connection_state(ConnectionState::ConnectionOk);
+		_updateTimer.start();
+		_exchangeQuery.update_markets();
+	});
+	connect(&_exchangeQuery, &ExchangeQuery::connection_waiting, [&](){
+		set_connection_state(ConnectionState::ConnectionWorking);
+	});
+	connect(&_exchangeQuery, &ExchangeQuery::connection_error, [&](QNetworkReply::NetworkError, const QString& errorStr){
+		_statusLabel->setText(QString("Connection error: ") + errorStr);
+		set_connection_state(ConnectionState::ConnectionError);
+	});
+	connect(&_exchangeQuery, &ExchangeQuery::data_error, [&](){
+		_statusLabel->setText(QString("Error in returned data, did the API change?"));
+		set_connection_state(ConnectionState::ConnectionError);
+	});
+	connect(&_exchangeQuery, &ExchangeQuery::markets_updated, this, &MainWindow::exchange_markets_updated);
+
+	connect(_connectionButton, &QToolButton::pressed, [&]() {
+		_exchangeQuery.update_markets();
+	});
+
+	_exchangeQuery.connect_to_exchange();
+
+	//_connectionButton->setIcon(_connectionOffIcon);
 }
 
 MainWindow::~MainWindow()
@@ -93,16 +131,6 @@ void MainWindow::readSettings()
     QSettings settings;  //To get settings: QVariant thing = settings.value("key").toQVariant();
 }
 
-void MainWindow::exchange_connected()
-{
-	ui->actionRefreshMarketData->setEnabled(true);
-}
-
-void MainWindow::exchange_connection_error(QNetworkReply::NetworkError code, const QString& errorStr)
-{
-	QMessageBox::critical(this, "Connection error", errorStr);
-}
-
 void MainWindow::exchange_markets_updated()
 {
 	ExchangeQuery::MarketsMap marketData = _exchangeQuery.get_markets();
@@ -126,4 +154,37 @@ void MainWindow::exchange_markets_updated()
 		recentOrdersWidget->set_orders(market.buyOrders, market.sellOrders);
 		recentOrdersWidget->set_recent(market.recentTrades);
 	}
+	set_connection_state(ConnectionState::ConnectionOk);
+}
+
+void MainWindow::animate_icon()
+{
+	_connectionButton->setIcon(QIcon(_connectionIconAnim->currentPixmap()));
+}
+
+void MainWindow::set_connection_state( ConnectionState::type state )
+{
+	if(_state == ConnectionState::ConnectionWorking)
+	{
+		_connectionIconAnim->stop();
+		disconnect(_connectionIconAnim, &QMovie::frameChanged, this, &MainWindow::animate_icon);
+	}
+	_state = state;
+	switch(_state)
+	{
+	case ConnectionState::ConnectionWorking:
+		connect(_connectionIconAnim, &QMovie::frameChanged, this, &MainWindow::animate_icon);
+		_connectionIconAnim->start();
+		break;
+	case ConnectionState::ConnectionError:
+		_connectionButton->setIcon(_connectionErrorIcon);
+		break;
+	case ConnectionState::ConnectionOff:
+		_connectionButton->setIcon(_connectionOffIcon);
+		break;
+	case ConnectionState::ConnectionOk:
+		_connectionButton->setIcon(_connectionOkIcon);
+		break;
+	};
+
 }

@@ -36,11 +36,13 @@ add_executable(DogeMarkets ${DogeMarkets_res} ${DogeMarkets_ui_h} ${DogeMarkets_
 #target_link_libraries(DogeMarkets ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Widgets_LIBRARIES} ${Qt5WinExtras_LIBRARIES})
 qt5_use_modules(DogeMarkets Core Gui Widgets WinExtras Network)
 
+set(INSTALL_DIR ${CMAKE_BINARY_DIR}/../bin)
+
 macro(_installDLL QT_MODULE)
 	get_target_property(DLL_LOCATION Qt5::${QT_MODULE} IMPORTED_LOCATION_DEBUG)
-	install(FILES ${DLL_LOCATION} DESTINATION ${CMAKE_BINARY_DIR} CONFIGURATIONS DEBUG)
+	install(FILES ${DLL_LOCATION} DESTINATION ${INSTALL_DIR} CONFIGURATIONS DEBUG)
 	get_target_property(DLL_LOCATION Qt5::${QT_MODULE} IMPORTED_LOCATION_RELEASE)
-	install(FILES ${DLL_LOCATION} DESTINATION ${CMAKE_BINARY_DIR} CONFIGURATIONS RELEASE)
+	install(FILES ${DLL_LOCATION} DESTINATION ${INSTALL_DIR} CONFIGURATIONS RELEASE RELWITHDEBINFO)
 endmacro()
 
 _installDLL(Core)
@@ -52,10 +54,10 @@ _installDLL(Network)
 set(QTDIR $ENV{QTDIR})
 STRING(REGEX REPLACE "\\\\" "/" QTDIR ${QTDIR}) 
 
-install(FILES "${QTDIR}/bin/icuin51.dll" DESTINATION ${CMAKE_BINARY_DIR})
-install(FILES "${QTDIR}/bin/icuuc51.dll" DESTINATION ${CMAKE_BINARY_DIR})
-install(FILES "${QTDIR}/bin/icudt51.dll" DESTINATION ${CMAKE_BINARY_DIR})
+install(FILES "${QTDIR}/bin/icuin51.dll" DESTINATION ${INSTALL_DIR})
+install(FILES "${QTDIR}/bin/icuuc51.dll" DESTINATION ${INSTALL_DIR})
+install(FILES "${QTDIR}/bin/icudt51.dll" DESTINATION ${INSTALL_DIR})
 
-install(TARGETS DogeMarkets RUNTIME DESTINATION ${CMAKE_BINARY_DIR})
+install(TARGETS DogeMarkets RUNTIME DESTINATION ${INSTALL_DIR})
 
 #add_executable(DogeMarkets mainwindow.cpp)
