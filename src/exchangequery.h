@@ -3,38 +3,9 @@
 
 #include <unordered_map>
 #include <QObject>
-#include <QDateTime>
 #include <QNetworkReply>
 
-struct Trade
-{
-	int id;
-	QDateTime time;
-	double price;
-	double quantity;
-	double total;
-	//bool buy; // or sell
-};
-
-struct Order
-{
-	double price;
-	double quantity;
-	double total;
-};
-
-
-struct Market
-{
-	int marketID;
-	QString label;
-	QString volume;
-	QString primaryName, primaryCode;
-	QString secondaryName, secondaryCode;
-
-	std::vector<Trade> recentTrades;
-	std::vector<Order> buyOrders, sellOrders;
-};
+#include "markettypes.h"
 
 class QNetworkAccessManager;
 

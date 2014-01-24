@@ -16,7 +16,7 @@ public:
 	RecentOrdersWidget(QWidget* parent = 0);
 	~RecentOrdersWidget();
 
-	void set_orders(const std::vector<Order>& buyOrders, const std::vector<Order>& sellOrders);
+	void set_orders(const BuyOrderSet& buyOrders, const SellOrderSet& sellOrders);
 	void set_recent(const std::vector<Trade>& trades);
 
 private:

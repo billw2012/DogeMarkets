@@ -25,11 +25,13 @@ set(DogeMarkets_src
 	main.cpp
 	exchangequery.cpp
 	recentorderswidget.cpp
+	volumegraphwidget.cpp
 	)
 set(DogeMarkets_h
 	mainwindow.h
 	exchangequery.h
 	recentorderswidget.h
+	volumegraphwidget.h
 	)
 add_executable(DogeMarkets ${DogeMarkets_res} ${DogeMarkets_ui_h} ${DogeMarkets_moc} ${DogeMarkets_src} ${DogeMarkets_h})
 #target_include_directories(DogeMarkets PUBLIC ${Qt5Core_INCLUDE_DIRS} ${Qt5Gui_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${Qt5WinExtras_INCLUDE_DIRS})

@@ -35,9 +35,6 @@ private slots:
     void about();
     void writeSettings();
 
-	//void exchange_connection_ok();
-	//void exchange_connection_ok();
-	//void exchange_connection_error(QNetworkReply::NetworkError, const QString&);
 	void exchange_markets_updated();
 
 private:

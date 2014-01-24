@@ -13,7 +13,8 @@ RecentOrdersWidget::~RecentOrdersWidget()
 
 }
 
-void updateOrders(QTreeWidget* widget, const std::vector<Order>& orders)
+template < class OrderSetTy_ >
+void updateOrders(QTreeWidget* widget, const OrderSetTy_& orders)
 {
 	widget->setUpdatesEnabled(false);
 	widget->clear();
@@ -30,10 +31,11 @@ void updateOrders(QTreeWidget* widget, const std::vector<Order>& orders)
 	widget->setUpdatesEnabled(true);
 }
 
-void RecentOrdersWidget::set_orders( const std::vector<Order>& buyOrders, const std::vector<Order>& sellOrders )
+void RecentOrdersWidget::set_orders(const BuyOrderSet& buyOrders, const SellOrderSet& sellOrders)
 {
 	updateOrders(ui->buyTreeWidget, buyOrders);
 	updateOrders(ui->sellTreeWidget, sellOrders);
+	ui->volumeGraphviewWidget->set_orders(buyOrders, sellOrders);
 }
 
 void RecentOrdersWidget::set_recent( const std::vector<Trade>& trades )

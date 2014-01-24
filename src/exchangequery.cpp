@@ -100,6 +100,22 @@ struct CryptsyExchange : public Exchange
 		return QUrl(QString("http://pubapi.cryptsy.com/api.php?method=singlemarketdata&marketid=%1").arg(marketCode));
 	}
 
+	template< class OrderSetTy >
+	static void parseOrders(const QJsonArray orderArray, OrderSetTy& orders)
+	{
+		//orders.resize(orderArray.count());
+		for(int orderIdx = 0; orderIdx < orderArray.count(); ++orderIdx)
+		{
+			const QJsonObject order = orderArray.at(orderIdx).toObject();
+			//Order& newOrder = orders[orderIdx];
+			Order newOrder;
+			newOrder.price = order["price"].toString("-1").toDouble();
+			newOrder.quantity = order["quantity"].toString("-1").toDouble();
+			newOrder.total = order["total"].toString("-1").toDouble();
+			orders.insert(newOrder);
+		}
+	}
+
 	virtual ExchangeErrorCodes::type parse_market( const QByteArray& data, Market& market ) 
 	{
 		QFile file("markets.log");
@@ -142,26 +158,11 @@ struct CryptsyExchange : public Exchange
 			newTrade.total = recentTrade["total"].toString("-1").toDouble();
 		}
 
-		auto parseOrders = [&](const QJsonArray orderArray, std::vector<Order>& orders)
-		{
-			orders.resize(orderArray.count());
-			for(int orderIdx = 0; orderIdx < orderArray.count(); ++orderIdx)
-			{
-				const QJsonObject order = orderArray.at(orderIdx).toObject();
-				Order& newOrder = orders[orderIdx];
-				newOrder.price = order["price"].toString("-1").toDouble();
-				newOrder.quantity = order["quantity"].toString("-1").toDouble();
-				newOrder.total = order["total"].toString("-1").toDouble();
-			}
-		};
-
 		parseOrders(marketDetails["sellorders"].toArray(), market.sellOrders);
 		parseOrders(marketDetails["buyorders"].toArray(), market.buyOrders);
 
 		return ExchangeErrorCodes::NoError;
 	}
-
-
 };
 
 ExchangeQuery::ExchangeQuery()
